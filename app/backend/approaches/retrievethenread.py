@@ -39,11 +39,12 @@ Sources:
 Answer:
 """
 
-    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str):
+    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str, query_language : str = "en-us"):
         self.search_client = search_client
         self.openai_deployment = openai_deployment
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
+        self.query_language = query_language
 
     def run(self, q: str, overrides: dict) -> any:
         use_semantic_captions = True if overrides.get("semantic_captions") else False
@@ -55,7 +56,7 @@ Answer:
             r = self.search_client.search(q, 
                                           filter=filter,
                                           query_type=QueryType.SEMANTIC, 
-                                          query_language="en-us", 
+                                          query_language=self.query_language, 
                                           query_speller="lexicon", 
                                           semantic_configuration_name="default", 
                                           top=top, 

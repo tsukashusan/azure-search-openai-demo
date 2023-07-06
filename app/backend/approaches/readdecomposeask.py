@@ -4,7 +4,7 @@ from azure.search.documents import SearchClient
 from azure.search.documents.models import QueryType
 from langchain.llms.openai import AzureOpenAI
 from langchain.prompts import PromptTemplate, BasePromptTemplate
-from langchain.callbacks.base import CallbackManager
+from langchain.callbacks.manager import CallbackManager
 from langchain.agents import Tool, AgentExecutor
 from langchain.agents.react.base import ReActDocstoreAgent
 from langchainadapters import HtmlCallbackHandler
@@ -12,11 +12,12 @@ from text import nonewlines
 from typing import List
 
 class ReadDecomposeAsk(Approach):
-    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str):
+    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str, query_language : str = "en-us"):
         self.search_client = search_client
         self.openai_deployment = openai_deployment
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
+        self.query_language = query_language
 
     def search(self, q: str, overrides: dict) -> str:
         use_semantic_captions = True if overrides.get("semantic_captions") else False
@@ -28,7 +29,7 @@ class ReadDecomposeAsk(Approach):
             r = self.search_client.search(q,
                                           filter=filter,
                                           query_type=QueryType.SEMANTIC, 
-                                          query_language="en-us", 
+                                          query_language=self.query_language, 
                                           query_speller="lexicon", 
                                           semantic_configuration_name="default", 
                                           top = top,
@@ -46,7 +47,7 @@ class ReadDecomposeAsk(Approach):
                                       top = 1,
                                       include_total_count=True,
                                       query_type=QueryType.SEMANTIC, 
-                                      query_language="en-us", 
+                                      query_language=self.query_language, 
                                       query_speller="lexicon", 
                                       semantic_configuration_name="default",
                                       query_answer="extractive|count-1",

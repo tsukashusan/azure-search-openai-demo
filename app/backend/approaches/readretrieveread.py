@@ -3,7 +3,7 @@ from approaches.approach import Approach
 from azure.search.documents import SearchClient
 from azure.search.documents.models import QueryType
 from langchain.llms.openai import AzureOpenAI
-from langchain.callbacks.base import CallbackManager
+from langchain.callbacks.manager import CallbackManager
 from langchain.chains import LLMChain
 from langchain.agents import Tool, ZeroShotAgent, AgentExecutor
 from langchain.llms.openai import AzureOpenAI
@@ -39,11 +39,12 @@ Thought: {agent_scratchpad}"""
 
     CognitiveSearchToolDescription = "useful for searching the Microsoft employee benefits information such as healthcare plans, retirement plans, etc."
 
-    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str):
+    def __init__(self, search_client: SearchClient, openai_deployment: str, sourcepage_field: str, content_field: str, query_language : str = "en-us"):
         self.search_client = search_client
         self.openai_deployment = openai_deployment
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
+        self.query_language = query_language
 
     def retrieve(self, q: str, overrides: dict) -> any:
         use_semantic_captions = True if overrides.get("semantic_captions") else False
@@ -55,7 +56,7 @@ Thought: {agent_scratchpad}"""
             r = self.search_client.search(q,
                                           filter=filter, 
                                           query_type=QueryType.SEMANTIC, 
-                                          query_language="en-us", 
+                                          query_language=self.query_language, 
                                           query_speller="lexicon", 
                                           semantic_configuration_name="default", 
                                           top = top,
